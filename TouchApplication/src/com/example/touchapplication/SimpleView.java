@@ -15,13 +15,12 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     private Paint         paint;
     private Thread        thread;
     private SurfaceHolder holder;
+    private BoundBall     ball;
 
     final private int     NUM_MAX = 10;
     private int           num     = 0;
     private float[]       x       = new float[NUM_MAX];
     private float[]       y       = new float[NUM_MAX];
-    private float         rv;
-    private float         centerX, centerY;
 
     public SimpleView(Context context) {
         super(context);
@@ -33,8 +32,8 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             x[i] = 0;
             y[i] = 0;
         }
-        centerX = centerY = 0;
-        rv = 0;
+        ball = new BoundBall((float)Math.random()*600, (float)Math.random()*1000, 30);
+        
         holder = getHolder();
         holder.addCallback(this);
 
@@ -55,19 +54,17 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
             canvas.drawColor(Color.BLACK);
 
-            rv += 0.05;
-            // x = (float) (centerX + 100 * Math.cos(rv));
-            // y = (float) (centerY + 100 * Math.sin(rv));
-
-            paint.setColor(Color.argb(255, 255, 255, 200));
-            paint.setStyle(Paint.Style.FILL);
-
             paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setStyle(Paint.Style.STROKE);
-            // canvas.drawCircle(centerX, centerY, 100, paint);            
+            
             for (int i = 0; i < num; i++) {
-                canvas.drawCircle(x[i], y[i], 200, paint); 
+                canvas.drawCircle(x[i], y[i], 200, paint);
             }
+            
+
+            paint.setColor(Color.argb(255, 150, 150, 255));
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
 
             holder.unlockCanvasAndPost(canvas);
         }
@@ -94,10 +91,8 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        centerX = event.getX();
-        centerY = event.getY();
         num = event.getPointerCount();
-        for(int i=0; i<num; i++){
+        for (int i = 0; i < num; i++) {
             x[i] = event.getX(i);
             y[i] = event.getY(i);
         }
