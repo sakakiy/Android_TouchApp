@@ -21,7 +21,7 @@ public class BoundBall {
         y += vy;
     }
 
-    public void addVec(float _vx, float _vy) {
+    public void setVec(float _vx, float _vy) {
         vx = _vx;
         vy = _vy;
     }
@@ -34,8 +34,65 @@ public class BoundBall {
         return y;
     }
 
+    public void setX(float _x) {
+        x = _x;
+    }
+
+    public void setY(float _y) {
+        y = _y;
+    }
+
+    public void inverseVx() {
+        vx = -vx;
+    }
+
+    public void inverseVy() {
+        vy = -vy;
+    }
+
     public float getRadius() {
         return radius;
+    }
+
+    public boolean isInside(float _x, float _y) {
+        if (Math.pow(x - _x, 2) + Math.pow(y - _y, 2) < Math.pow(radius, 2)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void setCoodinate(float _x, float _y) {
+        x = _x;
+        y = _y;
+    }
+
+    protected class Vec {
+        private float x, y;
+
+        Vec(float _x, float _y) {
+            x = _x;
+            y = _y;
+        }
+
+        public void add(Vec v) {
+            x += v.x;
+            y += v.y;
+        }
+
+        public void sub(Vec v) {
+            x -= v.x;
+            y -= v.y;
+
+        }
+
+        public void normalize() {
+            float scr = (float) Math.sqrt((double) Math.pow((double) x, 2)
+                    + (double) Math.pow((double) y, 2));
+            x /= scr;
+            y /= scr;
+        }
+
     }
 
 }

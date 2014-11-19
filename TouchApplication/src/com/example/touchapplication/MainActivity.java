@@ -10,13 +10,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(new SimpleView(this));
     }
-    
+
     @Override
     protected void onDestroy() {
         // TODO Auto-generated method stub
-     
+
         super.onDestroy();
     }
-    
-    
+
 }
