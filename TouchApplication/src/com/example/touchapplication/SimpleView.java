@@ -4,18 +4,28 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
-        Runnable {
+        Runnable, SensorEventListener {
 
     private Paint         paint;
     private Thread        thread;
     private SurfaceHolder holder;
     private BoundBall     ball;
+
+    private SensorManager sensorMng;
+    private Sensor        pressureSensor;
+    private float         pressureValue;
+    private Sensor        lightSensor;
+    private float         lightValue;
 
     private int           width;
     private int           height;
@@ -43,6 +53,39 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         holder = getHolder();
         holder.addCallback(this);
 
+        sensorMng = (SensorManager) context
+                .getSystemService(Context.SENSOR_SERVICE);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        thread = new Thread(this);
+
+        width = getWidth();
+        height = getHeight();
+
+        // â¡ë¨ìxÉZÉìÉTÅ[
+        pressureSensor = sensorMng.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        sensorMng.registerListener(this, pressureSensor,
+                SensorManager.SENSOR_DELAY_UI);
+        lightSensor = sensorMng.getDefaultSensor(Sensor.TYPE_LIGHT);
+        sensorMng.registerListener(this, lightSensor,
+                SensorManager.SENSOR_DELAY_UI);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width,
+            int height) {
+        if (thread != null) {
+            thread.start();
+        }
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.v("surface destroyed", "surface destroyed");
+        thread = null;
+        sensorMng.unregisterListener(this);
     }
 
     @Override
@@ -61,7 +104,17 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             if (canvas == null)
                 continue;
 
+            // îwåiÇìhÇËÇ¬Ç‘Ç∑
             canvas.drawColor(Color.BLACK);
+
+            float fontSize = 50f;
+            float marginX = 20;
+            float marginY = 10;
+            paint.setTextSize(fontSize);
+            canvas.drawText("Pressure : " + Float.toString(pressureValue),
+                    marginX, 50 + (marginY + fontSize) * 0, paint);
+            canvas.drawText("Light    : " + Float.toString(lightValue),
+                    marginX, 50 + (marginY + fontSize) * 1, paint);
 
             paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setStyle(Paint.Style.STROKE);
@@ -76,28 +129,6 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
             holder.unlockCanvasAndPost(canvas);
         }
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        thread = new Thread(this);
-
-        width = getWidth();
-        height = getHeight();
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width,
-            int height) {
-        if (thread != null) {
-            thread.start();
-        }
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.v("surface destroyed", "surface destroyed");
-        thread = null;
     }
 
     @Override
@@ -133,6 +164,22 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             ball.setY(height - ball.getRadius());
             ball.inverseVy();
         }
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
+            pressureValue = event.values[0];
+        } else if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
+            lightValue = event.values[0];
+        }
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // TODO Auto-generated method stub
 
     }
 }
