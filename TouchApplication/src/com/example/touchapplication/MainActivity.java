@@ -1,6 +1,9 @@
 package com.example.touchapplication;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -16,28 +19,46 @@ import android.widget.RelativeLayout;
 
 public class MainActivity extends Activity {
 
-    // ©ìƒT[ƒrƒX
+    // ã‚»ãƒ³ã‚µãƒ¼ç”©ã®ã‚µãƒ¼ãƒ“ã‚¹
     private SensorService  sensorService;
     private Intent         serviceIntent;
 
-    // ƒrƒ…[
+    // ãƒ“ãƒ¥ãƒ¼
     private SimpleView     simpleView;
     private RelativeLayout layout;
     private Button         startButton, stopButton;
+
+    // é€šçŸ¥
+    NotificationManager    notiMng;
+    Notification           note;
+    private final int      NOTE_ID = 120;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // setContentView(new SimpleView(this));
 
-        // ƒŒƒCƒAƒEƒg‚ğİ’è‚·‚é
+        // ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’è¨­å®šã™ã‚‹
         layout = new RelativeLayout(this);
         setContentView(layout);
         settingLayout();
 
-        // ©ìƒT[ƒrƒX
+        // è‡ªä½œã‚µãƒ¼ãƒ“ã‚¹
         serviceIntent = new Intent(this, SensorService.class);
 
+        // é€šçŸ¥
+        notiMng = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Intent launchIntent = new Intent(getApplicationContext(),
+                MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                getApplicationContext(), 0, launchIntent, 0);
+
+        // Notification Setting
+        note = new Notification.Builder(getApplicationContext())
+                .setContentTitle("New Notification")
+                .setContentText("Sensing.....").setContentIntent(pendingIntent)
+                .setOngoing(true).setSmallIcon(R.drawable.ic_launcher).build();
     }
 
     private void settingLayout() {
@@ -55,6 +76,8 @@ public class MainActivity extends Activity {
         startButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 sensorService.startSensor();
+                // Notification start
+                notiMng.notify(NOTE_ID, note);
             }
         });
         RelativeLayout.LayoutParams paramTop = new RelativeLayout.LayoutParams(
@@ -68,6 +91,8 @@ public class MainActivity extends Activity {
         stopButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 sensorService.stopSensor();
+                // Notification cancel
+                notiMng.cancel(NOTE_ID);
             }
         });
         RelativeLayout.LayoutParams paramBottom = new RelativeLayout.LayoutParams(
@@ -81,10 +106,10 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        // ƒT[ƒrƒX‚Ì–¾¦“I‚È‹N“®i‰i‘±‚·‚éj
+        // ã‚µãƒ¼ãƒ“ã‚¹ã®æ˜ç¤ºçš„ãªèµ·å‹•ï¼ˆæ°¸ç¶šã™ã‚‹ï¼‰
         startService(serviceIntent);
         Log.v("Activity", "Activity onResume");
-        // ƒT[ƒrƒX‚ÉƒoƒCƒ“ƒh‚·‚é
+        // ã‚µãƒ¼ãƒ“ã‚¹ã«ãƒã‚¤ãƒ³ãƒ‰ã™ã‚‹
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
     }
