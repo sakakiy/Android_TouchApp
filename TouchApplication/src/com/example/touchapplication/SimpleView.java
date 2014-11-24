@@ -55,6 +55,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
         sensorMng = (SensorManager) context
                 .getSystemService(Context.SENSOR_SERVICE);
+
     }
 
     @Override
@@ -71,6 +72,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         lightSensor = sensorMng.getDefaultSensor(Sensor.TYPE_LIGHT);
         sensorMng.registerListener(this, lightSensor,
                 SensorManager.SENSOR_DELAY_UI);
+
     }
 
     @Override
@@ -133,6 +135,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
         num = event.getPointerCount();
         for (int i = 0; i < num; i++) {
             x[i] = event.getX(i);
@@ -179,7 +182,5 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // TODO Auto-generated method stub
-
     }
 }
