@@ -21,19 +21,29 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     private SurfaceHolder holder;
     private BoundBall     ball;
 
+    // 気圧センサ、照度センサ
     private SensorManager sensorMng;
     private Sensor        pressureSensor;
     private float         pressureValue;
     private Sensor        lightSensor;
     private float         lightValue;
 
+    // 画面サイズ
     private int           width;
     private int           height;
 
-    final private int     NUM_MAX = 10;
-    private int           num     = 0;
-    private float[]       x       = new float[NUM_MAX];
-    private float[]       y       = new float[NUM_MAX];
+    // マルチタッチ点の表示
+    final private int     NUM_MAX         = 10;
+    private int           num             = 0;
+    private float[]       x               = new float[NUM_MAX];
+    private float[]       y               = new float[NUM_MAX];
+
+    // センサのサービスから値を受け取る
+    private SensorService sensorService;
+    private final int     GRAPH_VALUE_NUM = SensorService.DATA_NUM;
+    private float         graphX, graphY, graphMargin, graphWidth;
+    private float         sensorValues[]  = new float[GRAPH_VALUE_NUM];
+    private int           sensorIndex;
 
     public SimpleView(Context context) {
         super(context);
@@ -56,6 +66,17 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         sensorMng = (SensorManager) context
                 .getSystemService(Context.SENSOR_SERVICE);
 
+        // センサのグラフ関連のフィールドの初期化
+        for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
+            sensorValues[i] = 0;
+        }
+        graphMargin = 3;
+        graphX = 100;
+        graphY = 800;
+        width = 1080;
+        graphWidth = ((width - graphX * 2) + graphMargin) / GRAPH_VALUE_NUM
+                - graphMargin;
+        sensorIndex = 0;
     }
 
     @Override
@@ -65,7 +86,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         width = getWidth();
         height = getHeight();
 
-        // 加速度センサー
+        // 気圧センサー
         pressureSensor = sensorMng.getDefaultSensor(Sensor.TYPE_PRESSURE);
         sensorMng.registerListener(this, pressureSensor,
                 SensorManager.SENSOR_DELAY_UI);
@@ -73,6 +94,9 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         sensorMng.registerListener(this, lightSensor,
                 SensorManager.SENSOR_DELAY_UI);
 
+        // 気圧センサーサービスから値の配列をもらう
+        refreshSensorData();
+        Log.v("SimpleView", "surfaceCreated");
     }
 
     @Override
@@ -81,13 +105,25 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         if (thread != null) {
             thread.start();
         }
+        Log.v("SimpleView", "surfaceChanged");
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.v("surface destroyed", "surface destroyed");
+        Log.v("SimpleView", "surface destroyed");
         thread = null;
         sensorMng.unregisterListener(this);
+    }
+
+    // センサーデータを更新する
+    private void refreshSensorData() {
+        if (sensorService != null) {
+            float tmp[] = sensorService.getValues();
+            for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
+                sensorValues[i] = tmp[i];
+            }
+            sensorIndex = sensorService.getIndex();
+        }
     }
 
     @Override
@@ -129,12 +165,32 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             paint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
 
+            // 気圧センサーのデータをグラフ化
+            for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
+                if (i == sensorIndex) {
+                    paint.setColor(Color.argb(255, 255, 100, 100));
+                } else {
+                    paint.setColor(Color.argb(255, 100, 255, 100));
+                }
+                canvas.drawRect(graphX + i * (graphWidth + graphMargin),
+                        graphY, graphX + i * (graphWidth + graphMargin)
+                                + graphWidth, graphY + 3
+                                * (sensorValues[i] - 950), paint);
+            }
+
             holder.unlockCanvasAndPost(canvas);
         }
     }
 
+    public void setSensorService(SensorService ss) {
+        this.sensorService = ss;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        // センサーのデータを更新する
+        refreshSensorData();
 
         num = event.getPointerCount();
         for (int i = 0; i < num; i++) {

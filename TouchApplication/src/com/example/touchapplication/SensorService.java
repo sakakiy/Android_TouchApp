@@ -13,14 +13,21 @@ import android.widget.Toast;
 
 public class SensorService extends Service implements SensorEventListener {
 
-    private final String  LOGSTR = "SensorSevice";
+    private final String    LOGSTR              = "SensorSevice";     // ログで出すときのタグ名
+    public static final int DATA_NUM            = 50;                 // 保持するデータ数
 
-    private SensorManager pressureMng;
-    private Sensor        pressureSensor;
-    private boolean       isSensing;
+    // 気圧センサマネージャ
+    private SensorManager   pressureMng;
+    private Sensor          pressureSensor;
+    private boolean         isSensing;
 
-    private long          lastSensingTime;
-    private final long    intervalSensingTime = 5 * 1000;
+    // 計測インターバル関連
+    private long            lastSensingTime;
+    private final long      intervalSensingTime = 30 * 60 * 1000;     // MilliSecond
+
+    // 保持する計測データを格納する配列
+    private float           values[]            = new float[DATA_NUM];
+    private int             valueIndex          = 0;
 
     @Override
     public void onCreate() {
@@ -82,8 +89,22 @@ public class SensorService extends Service implements SensorEventListener {
             Log.v(LOGSTR,
                     "onSensorChanged : Value "
                             + Float.toString(event.values[0]));
+
+            // 自分の中でデータを保持する
+            valueIndex = (valueIndex + 1) % DATA_NUM;
+            values[valueIndex] = event.values[0];
+
             lastSensingTime = currentTime;
         }
+    }
+
+    // センサデータを格納した配列を返す
+    public float[] getValues() {
+        return values;
+    }
+
+    public int getIndex() {
+        return valueIndex;
     }
 
     @Override

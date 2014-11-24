@@ -51,6 +51,7 @@ public class MainActivity extends Activity {
 
         Intent launchIntent = new Intent(getApplicationContext(),
                 MainActivity.class);
+        launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 getApplicationContext(), 0, launchIntent, 0);
 
@@ -131,6 +132,9 @@ public class MainActivity extends Activity {
                                                             IBinder service) {
                                                         sensorService = ((SensorService.ServiceBinder) service)
                                                                 .getService();
+
+                                                        simpleView
+                                                                .setSensorService(sensorService);
                                                     }
 
                                                     @Override
