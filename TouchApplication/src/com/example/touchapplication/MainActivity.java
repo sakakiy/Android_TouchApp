@@ -33,12 +33,23 @@ public class MainActivity extends Activity {
         // レイアウトを設定する
         layout = new RelativeLayout(this);
         setContentView(layout);
+        settingLayout();
+
+        // 自作サービス
+        serviceIntent = new Intent(this, SensorService.class);
+
+    }
+
+    private void settingLayout() {
+        // SimpleView
         simpleView = new SimpleView(this);
 
         int MP = ViewGroup.LayoutParams.MATCH_PARENT;
         int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 
         layout.addView(simpleView, new RelativeLayout.LayoutParams(MP, WC));
+
+        // StartButton
         startButton = new Button(this);
         startButton.setText("START");
         startButton.setOnClickListener(new OnClickListener() {
@@ -46,6 +57,12 @@ public class MainActivity extends Activity {
                 sensorService.startSensor();
             }
         });
+        RelativeLayout.LayoutParams paramTop = new RelativeLayout.LayoutParams(
+                MP, WC);
+        paramTop.addRule(RelativeLayout.ALIGN_TOP);
+        layout.addView(startButton, paramTop);
+
+        // StopButton
         stopButton = new Button(this);
         stopButton.setText("STOP");
         stopButton.setOnClickListener(new OnClickListener() {
@@ -53,19 +70,11 @@ public class MainActivity extends Activity {
                 sensorService.stopSensor();
             }
         });
-        RelativeLayout.LayoutParams paramTop = new RelativeLayout.LayoutParams(
-                MP, WC);
-        paramTop.addRule(RelativeLayout.ALIGN_TOP);
-        layout.addView(startButton, paramTop);
         RelativeLayout.LayoutParams paramBottom = new RelativeLayout.LayoutParams(
                 MP, WC);
         paramBottom.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
         layout.addView(stopButton, paramBottom);
-
-        // 自作サービス
-        serviceIntent = new Intent(this, SensorService.class);
-
     }
 
     @Override
