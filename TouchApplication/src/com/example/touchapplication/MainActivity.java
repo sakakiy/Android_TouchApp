@@ -1,5 +1,6 @@
 package com.example.touchapplication;
 
+import android.R.integer;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -113,6 +114,10 @@ public class MainActivity extends Activity {
 
         layout.addView(stopButton, paramBottom);
     }
+    
+    public void setSensorData(float[] v, int index){
+        simpleView.setSensorData(v, index);
+    }
 
     @Override
     protected void onResume() {
@@ -150,6 +155,8 @@ public class MainActivity extends Activity {
 
                                                         simpleView
                                                                 .setSensorService(sensorService);
+                                                        sensorService
+                                                                .setActivity(MainActivity.this);
                                                     }
 
                                                     @Override

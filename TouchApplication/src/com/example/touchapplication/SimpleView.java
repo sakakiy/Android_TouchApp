@@ -118,6 +118,14 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     // センサーデータを更新する
+    public void setSensorData(float[] v, int index) {
+        for (int i = 0; i < index; i++) {
+            sensorValues[sensorIndex] = v[i];
+            sensorIndex = (sensorIndex + 1) % GRAPH_VALUE_NUM;
+        }
+    }
+
+    // センサーデータを更新する
     private void refreshSensorData() {
         if (sensorService != null) {
             float tmp[] = sensorService.getValues();

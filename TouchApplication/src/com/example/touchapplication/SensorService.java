@@ -5,6 +5,7 @@ import java.util.Date;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +30,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     // 計測インターバル関連
     private long                lastSensingTime;
-    private final long          intervalSensingTime = 30 * 60 * 1000;     // MilliSecond
+    private final long          intervalSensingTime = 15 * 60 * 1000;     // MilliSecond
 
     // 保持する計測データを格納する配列
     private float               values[]            = new float[DATA_NUM];
@@ -39,6 +40,9 @@ public class SensorService extends Service implements SensorEventListener {
     private NotificationManager notiMng;
     private Notification        note;
     private final int           NOTE_ID             = 123;
+
+    // アクティビティ
+    private MainActivity        mainActivity        = null;
 
     private int                 counter             = 0;
 
@@ -69,6 +73,11 @@ public class SensorService extends Service implements SensorEventListener {
 
         // test
         startSensor();
+
+    }
+
+    public void setActivity(MainActivity act) {
+        mainActivity = act;
     }
 
     @Override
@@ -140,14 +149,33 @@ public class SensorService extends Service implements SensorEventListener {
                     + Float.toString(values[valueIndex]);
 
             notiMng.cancel(NOTE_ID);
+
+            // アプリへ飛べるような Notification を作成
+            Intent launchIntent = new Intent(getApplicationContext(),
+                    MainActivity.class);
+            launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    getApplicationContext(), 0, launchIntent, 0);
             note = new Notification.Builder(getApplicationContext())
                     .setContentTitle("Pressure Service")
                     .setContentText(time + " ** " + notiStr)
+                    .setContentIntent(pendingIntent)
                     .setSmallIcon(R.drawable.ic_launcher).build();
+
             notiMng.notify(NOTE_ID, note);
 
             Toast.makeText(this, "[Sensor]" + notiStr, Toast.LENGTH_SHORT)
                     .show();
+
+            // MainActivity にセンサデータを反映
+            if (mainActivity != null) {
+                float[] v = new float[counter];
+                for (int i = 0; i < counter; i++) {
+                    v[i] = values[(valueIndex + i) % DATA_NUM];
+                }
+                mainActivity.setSensorData(v, counter);
+                counter = 0;
+            }
 
             // 現在の時間を記録
             lastSensingTime = currentTime;
