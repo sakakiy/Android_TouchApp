@@ -44,6 +44,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     private float         graphX, graphY, graphMargin, graphWidth;
     private float         sensorValues[]  = new float[GRAPH_VALUE_NUM];
     private int           sensorIndex;
+    private String        logStr;
 
     public SimpleView(Context context) {
         super(context);
@@ -77,6 +78,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         graphWidth = ((width - graphX * 2) + graphMargin) / GRAPH_VALUE_NUM
                 - graphMargin;
         sensorIndex = 0;
+        logStr = "LOG";
     }
 
     @Override
@@ -123,6 +125,10 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                 sensorValues[i] = tmp[i];
             }
             sensorIndex = sensorService.getIndex();
+            logStr = "sensorService is not NULL";
+
+        } else {
+            logStr = "sensorService is NULL";
         }
     }
 
@@ -153,6 +159,8 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                     marginX, 50 + (marginY + fontSize) * 0, paint);
             canvas.drawText("Light    : " + Float.toString(lightValue),
                     marginX, 50 + (marginY + fontSize) * 1, paint);
+            canvas.drawText(logStr, marginX, 50 + (marginY + fontSize) * 2,
+                    paint);
 
             paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setStyle(Paint.Style.STROKE);
@@ -172,10 +180,10 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                 } else {
                     paint.setColor(Color.argb(255, 100, 255, 100));
                 }
-                canvas.drawRect(graphX + i * (graphWidth + graphMargin),
-                        graphY, graphX + i * (graphWidth + graphMargin)
-                                + graphWidth, graphY + 3
-                                * (sensorValues[i] - 950), paint);
+                canvas.drawRect(graphX + i * (graphWidth + graphMargin), graphY
+                        - 6 * (sensorValues[i] - 980), graphX + i
+                        * (graphWidth + graphMargin) + graphWidth, graphY,
+                        paint);
             }
 
             holder.unlockCanvasAndPost(canvas);

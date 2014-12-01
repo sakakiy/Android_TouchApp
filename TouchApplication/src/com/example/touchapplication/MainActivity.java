@@ -29,8 +29,8 @@ public class MainActivity extends Activity {
     private Button         startButton, stopButton;
 
     // 通知
-    NotificationManager    notiMng;
-    Notification           note;
+    // NotificationManager notiMng;
+    // Notification note;
     private final int      NOTE_ID = 120;
 
     @Override
@@ -47,19 +47,22 @@ public class MainActivity extends Activity {
         serviceIntent = new Intent(this, SensorService.class);
 
         // 通知
-        notiMng = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // notiMng = (NotificationManager)
+        // getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent launchIntent = new Intent(getApplicationContext(),
-                MainActivity.class);
-        launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                getApplicationContext(), 0, launchIntent, 0);
-
-        // Notification Setting
-        note = new Notification.Builder(getApplicationContext())
-                .setContentTitle("New Notification")
-                .setContentText("Sensing.....").setContentIntent(pendingIntent)
-                .setOngoing(true).setSmallIcon(R.drawable.ic_launcher).build();
+        /*
+         * Intent launchIntent = new Intent(getApplicationContext(),
+         * MainActivity.class);
+         * launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); PendingIntent
+         * pendingIntent = PendingIntent.getActivity( getApplicationContext(),
+         * 0, launchIntent, 0);
+         * 
+         * // Notification Setting note = new
+         * Notification.Builder(getApplicationContext())
+         * .setContentTitle("New Notification")
+         * .setContentText("Sensing.....").setContentIntent(pendingIntent)
+         * .setOngoing(true).setSmallIcon(R.drawable.ic_launcher).build();
+         */
     }
 
     private void settingLayout() {
@@ -76,9 +79,13 @@ public class MainActivity extends Activity {
         startButton.setText("START");
         startButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                sensorService.startSensor();
+                // sensorService.startSensor();
+
+                // test
+                startService(serviceIntent);
+
                 // Notification start
-                notiMng.notify(NOTE_ID, note);
+                // notiMng.notify(NOTE_ID, note);
             }
         });
         RelativeLayout.LayoutParams paramTop = new RelativeLayout.LayoutParams(
@@ -91,9 +98,13 @@ public class MainActivity extends Activity {
         stopButton.setText("STOP");
         stopButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                sensorService.stopSensor();
+                // sensorService.stopSensor();
+
+                // test
+                stopService(serviceIntent);
+
                 // Notification cancel
-                notiMng.cancel(NOTE_ID);
+                // notiMng.cancel(NOTE_ID);
             }
         });
         RelativeLayout.LayoutParams paramBottom = new RelativeLayout.LayoutParams(
@@ -106,10 +117,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.v("Activity", "Activity onResume");
 
         // サービスの明示的な起動（永続する）
         startService(serviceIntent);
-        Log.v("Activity", "Activity onResume");
         // サービスにバインドする
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
@@ -118,8 +129,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.v("Activity", "Activity onPause");
         if (!sensorService.isSensing()) {
             stopService(serviceIntent);
+            Log.v("Activity", "Stop Service");
         }
         unbindService(serviceConnection);
     }
@@ -130,6 +143,8 @@ public class MainActivity extends Activity {
                                                     public void onServiceConnected(
                                                             ComponentName name,
                                                             IBinder service) {
+                                                        Log.v("Activity",
+                                                                "onServiceConnected");
                                                         sensorService = ((SensorService.ServiceBinder) service)
                                                                 .getService();
 
@@ -140,6 +155,8 @@ public class MainActivity extends Activity {
                                                     @Override
                                                     public void onServiceDisconnected(
                                                             ComponentName name) {
+                                                        Log.v("Activity",
+                                                                "onServiceDisconnected");
                                                         sensorService = null;
                                                     }
                                                 };
@@ -147,6 +164,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.v("Activity", "Activity onDestroy");
     }
 
 }

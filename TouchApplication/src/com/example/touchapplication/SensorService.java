@@ -1,6 +1,12 @@
 package com.example.touchapplication;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -13,38 +19,67 @@ import android.widget.Toast;
 
 public class SensorService extends Service implements SensorEventListener {
 
-    private final String    LOGSTR              = "SensorSevice";     // ログで出すときのタグ名
-    public static final int DATA_NUM            = 50;                 // 保持するデータ数
+    private final String        LOGSTR              = "SensorService";    // ログで出すときのタグ名
+    public static final int     DATA_NUM            = 50;                 // 保持するデータ数
 
     // 気圧センサマネージャ
-    private SensorManager   pressureMng;
-    private Sensor          pressureSensor;
-    private boolean         isSensing;
+    private SensorManager       pressureMng;
+    private Sensor              pressureSensor;
+    private boolean             isSensing;
 
     // 計測インターバル関連
-    private long            lastSensingTime;
-    private final long      intervalSensingTime = 30 * 60 * 1000;     // MilliSecond
+    private long                lastSensingTime;
+    private final long          intervalSensingTime = 30 * 60 * 1000;     // MilliSecond
 
     // 保持する計測データを格納する配列
-    private float           values[]            = new float[DATA_NUM];
-    private int             valueIndex          = 0;
+    private float               values[]            = new float[DATA_NUM];
+    private int                 valueIndex          = 0;
+
+    // 通知
+    private NotificationManager notiMng;
+    private Notification        note;
+    private final int           NOTE_ID             = 123;
+
+    private int                 counter             = 0;
+
+    private int                 originalID          = (int) (1000000 * Math
+                                                            .random());
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.v(LOGSTR, "SensorService onCreate");
         Toast.makeText(this, LOGSTR + " onCreate", Toast.LENGTH_SHORT).show();
 
         // 気圧計
         pressureMng = (SensorManager) getSystemService(SENSOR_SERVICE);
         pressureSensor = pressureMng.getDefaultSensor(Sensor.TYPE_PRESSURE);
         isSensing = false;
+
+        // 通知
+        notiMng = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Notification Setting
+        note = new Notification.Builder(getApplicationContext())
+                .setContentTitle("Notification from Service")
+                .setContentText("--").setSmallIcon(R.drawable.ic_launcher)
+                .build();
+
+        counter = 0;
+
+        // test
+        startSensor();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.v(LOGSTR, "SensorService onDestroy");
         Toast.makeText(this, LOGSTR + " onDestroy", Toast.LENGTH_SHORT).show();
         pressureMng.unregisterListener(this);
+
+        // test
+        stopSensor();
     }
 
     public void startSensor() {
@@ -79,6 +114,7 @@ public class SensorService extends Service implements SensorEventListener {
     @Override
     // TODO いつ呼ばれるのか?
     public IBinder onBind(Intent intent) {
+        Log.v(LOGSTR, "onBind");
         return binder;
     }
 
@@ -94,12 +130,33 @@ public class SensorService extends Service implements SensorEventListener {
             valueIndex = (valueIndex + 1) % DATA_NUM;
             values[valueIndex] = event.values[0];
 
+            // 通知時間取得
+            String time = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+                    .format(new Date());
+
+            // データを通知
+            counter++;
+            String notiStr = Integer.toString(counter) + " : "
+                    + Float.toString(values[valueIndex]);
+
+            notiMng.cancel(NOTE_ID);
+            note = new Notification.Builder(getApplicationContext())
+                    .setContentTitle("Pressure Service")
+                    .setContentText(time + " ** " + notiStr)
+                    .setSmallIcon(R.drawable.ic_launcher).build();
+            notiMng.notify(NOTE_ID, note);
+
+            Toast.makeText(this, "[Sensor]" + notiStr, Toast.LENGTH_SHORT)
+                    .show();
+
+            // 現在の時間を記録
             lastSensingTime = currentTime;
         }
     }
 
     // センサデータを格納した配列を返す
     public float[] getValues() {
+        Log.v("SensoeService", "ID : " + Integer.toString(originalID));
         return values;
     }
 
