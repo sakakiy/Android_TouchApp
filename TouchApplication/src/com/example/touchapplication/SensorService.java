@@ -20,28 +20,28 @@ import android.widget.Toast;
 
 public class SensorService extends Service implements SensorEventListener {
 
-    private final String        LOGSTR              = "SensorService";    // ƒƒO‚Åo‚·‚Æ‚«‚Ìƒ^ƒO–¼
-    public static final int     DATA_NUM            = 50;                 // •Û‚·‚éƒf[ƒ^”
+    private final String        LOGSTR              = "SensorService";    // ãƒ­ã‚°ã§å‡ºã™ã¨ãã®ã‚¿ã‚°å
+    public static final int     DATA_NUM            = 50;                 // ä¿æŒã™ã‚‹ãƒ‡ãƒ¼ã‚¿æ•°
 
-    // ‹Cˆ³ƒZƒ“ƒTƒ}ƒl[ƒWƒƒ
+    // æ°—åœ§ã‚»ãƒ³ã‚µãƒãƒãƒ¼ã‚¸ãƒ£
     private SensorManager       pressureMng;
     private Sensor              pressureSensor;
     private boolean             isSensing;
 
-    // Œv‘ªƒCƒ“ƒ^[ƒoƒ‹ŠÖ˜A
+    // è¨ˆæ¸¬ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«é–¢é€£
     private long                lastSensingTime;
     private final long          intervalSensingTime = 15 * 60 * 1000;     // MilliSecond
 
-    // •Û‚·‚éŒv‘ªƒf[ƒ^‚ğŠi”[‚·‚é”z—ñ
+    // ä¿æŒã™ã‚‹è¨ˆæ¸¬ãƒ‡ãƒ¼ã‚¿ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
     private float               values[]            = new float[DATA_NUM];
     private int                 valueIndex          = 0;
 
-    // ’Ê’m
+    // é€šçŸ¥
     private NotificationManager notiMng;
     private Notification        note;
     private final int           NOTE_ID             = 123;
 
-    // ƒAƒNƒeƒBƒrƒeƒB
+    // ã‚¢ã‚¯ãƒ†ã‚£ãƒ“ãƒ†ã‚£
     private MainActivity        mainActivity        = null;
 
     private int                 counter             = 0;
@@ -52,12 +52,12 @@ public class SensorService extends Service implements SensorEventListener {
         Log.v(LOGSTR, "SensorService onCreate");
         Toast.makeText(this, LOGSTR + " onCreate", Toast.LENGTH_SHORT).show();
 
-        // ‹Cˆ³Œv
+        // æ°—åœ§è¨ˆ
         pressureMng = (SensorManager) getSystemService(SENSOR_SERVICE);
         pressureSensor = pressureMng.getDefaultSensor(Sensor.TYPE_PRESSURE);
         isSensing = false;
 
-        // ’Ê’m
+        // é€šçŸ¥
         notiMng = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         // Notification Setting
@@ -118,7 +118,7 @@ public class SensorService extends Service implements SensorEventListener {
     private final ServiceBinder binder = new ServiceBinder();
 
     @Override
-    // TODO ‚¢‚ÂŒÄ‚Î‚ê‚é‚Ì‚©?
+    // TODO ã„ã¤å‘¼ã°ã‚Œã‚‹ã®ã‹?
     public IBinder onBind(Intent intent) {
         Log.v(LOGSTR, "onBind");
         return binder;
@@ -132,22 +132,22 @@ public class SensorService extends Service implements SensorEventListener {
                     "onSensorChanged : Value "
                             + Float.toString(event.values[0]));
 
-            // ©•ª‚Ì’†‚Åƒf[ƒ^‚ğ•Û‚·‚é
+            // è‡ªåˆ†ã®ä¸­ã§ãƒ‡ãƒ¼ã‚¿ã‚’ä¿æŒã™ã‚‹
             valueIndex = (valueIndex + 1) % DATA_NUM;
             values[valueIndex] = event.values[0];
 
-            // ’Ê’mŠÔæ“¾
+            // é€šçŸ¥æ™‚é–“å–å¾—
             String time = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
                     .format(new Date());
 
-            // ƒf[ƒ^‚ğ’Ê’m
+            // ãƒ‡ãƒ¼ã‚¿ã‚’é€šçŸ¥
             counter++;
             String notiStr = Integer.toString(counter) + " : "
                     + Float.toString(values[valueIndex]);
 
             notiMng.cancel(NOTE_ID);
 
-            // ƒAƒvƒŠ‚Ö”ò‚×‚é‚æ‚¤‚È Notification ‚ğì¬
+            // ã‚¢ãƒ—ãƒªã¸é£›ã¹ã‚‹ã‚ˆã†ãª Notification ã‚’ä½œæˆ
             Intent launchIntent = new Intent(getApplicationContext(),
                     MainActivity.class);
             launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -164,7 +164,7 @@ public class SensorService extends Service implements SensorEventListener {
             Toast.makeText(this, "[Sensor]" + notiStr, Toast.LENGTH_SHORT)
                     .show();
 
-            // MainActivity ‚ÉƒZƒ“ƒTƒf[ƒ^‚ğ”½‰f
+            // MainActivity ã«ã‚»ãƒ³ã‚µãƒ‡ãƒ¼ã‚¿ã‚’åæ˜ 
             if (mainActivity != null) {
                 float[] v = new float[counter];
                 for (int i = 0; i < counter; i++) {
@@ -174,12 +174,12 @@ public class SensorService extends Service implements SensorEventListener {
                 counter = 0;
             }
 
-            // Œ»İ‚ÌŠÔ‚ğ‹L˜^
+            // ç¾åœ¨ã®æ™‚é–“ã‚’è¨˜éŒ²
             lastSensingTime = currentTime;
         }
     }
 
-    // ƒZƒ“ƒTƒf[ƒ^‚ğŠi”[‚µ‚½”z—ñ‚ğ•Ô‚·
+    // ã‚»ãƒ³ã‚µãƒ‡ãƒ¼ã‚¿ã‚’æ ¼ç´ã—ãŸé…åˆ—ã‚’è¿”ã™
     public float[] getValues() {
         return values;
     }

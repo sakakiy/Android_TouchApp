@@ -21,24 +21,24 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     private SurfaceHolder holder;
     private BoundBall     ball;
 
-    // ‹Cˆ³ƒZƒ“ƒTAÆ“xƒZƒ“ƒT
+    // æ°—åœ§ã‚»ãƒ³ã‚µã€ç…§åº¦ã‚»ãƒ³ã‚µ
     private SensorManager sensorMng;
     private Sensor        pressureSensor;
     private float         pressureValue;
     private Sensor        lightSensor;
     private float         lightValue;
 
-    // ‰æ–ÊƒTƒCƒY
+    // ç”»é¢ã‚µã‚¤ã‚º
     private int           width;
     private int           height;
 
-    // ƒ}ƒ‹ƒ`ƒ^ƒbƒ`“_‚Ì•\¦
+    // ãƒãƒ«ãƒã‚¿ãƒƒãƒç‚¹ã®è¡¨ç¤º
     final private int     NUM_MAX         = 10;
     private int           num             = 0;
     private float[]       x               = new float[NUM_MAX];
     private float[]       y               = new float[NUM_MAX];
 
-    // ƒZƒ“ƒT‚ÌƒT[ƒrƒX‚©‚ç’l‚ğó‚¯æ‚é
+    // ã‚»ãƒ³ã‚µã®ã‚µãƒ¼ãƒ“ã‚¹ã‹ã‚‰å€¤ã‚’å—ã‘å–ã‚‹
     private SensorService sensorService;
     private final int     GRAPH_VALUE_NUM = SensorService.DATA_NUM;
     private float         graphX, graphY, graphMargin, graphWidth;
@@ -67,7 +67,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         sensorMng = (SensorManager) context
                 .getSystemService(Context.SENSOR_SERVICE);
 
-        // ƒZƒ“ƒT‚ÌƒOƒ‰ƒtŠÖ˜A‚ÌƒtƒB[ƒ‹ƒh‚Ì‰Šú‰»
+        // ã‚»ãƒ³ã‚µã®ã‚°ãƒ©ãƒ•é–¢é€£ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®åˆæœŸåŒ–
         for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
             sensorValues[i] = 0;
         }
@@ -88,7 +88,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         width = getWidth();
         height = getHeight();
 
-        // ‹Cˆ³ƒZƒ“ƒT[
+        // æ°—åœ§ã‚»ãƒ³ã‚µãƒ¼
         pressureSensor = sensorMng.getDefaultSensor(Sensor.TYPE_PRESSURE);
         sensorMng.registerListener(this, pressureSensor,
                 SensorManager.SENSOR_DELAY_UI);
@@ -96,7 +96,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         sensorMng.registerListener(this, lightSensor,
                 SensorManager.SENSOR_DELAY_UI);
 
-        // ‹Cˆ³ƒZƒ“ƒT[ƒT[ƒrƒX‚©‚ç’l‚Ì”z—ñ‚ğ‚à‚ç‚¤
+        // æ°—åœ§ã‚»ãƒ³ã‚µãƒ¼ã‚µãƒ¼ãƒ“ã‚¹ã‹ã‚‰å€¤ã®é…åˆ—ã‚’ã‚‚ã‚‰ã†
         refreshSensorData();
         Log.v("SimpleView", "surfaceCreated");
     }
@@ -117,7 +117,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         sensorMng.unregisterListener(this);
     }
 
-    // ƒZƒ“ƒT[ƒf[ƒ^‚ğXV‚·‚é
+    // ã‚»ãƒ³ã‚µãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°ã™ã‚‹
     public void setSensorData(float[] v, int index) {
         for (int i = 0; i < index; i++) {
             sensorValues[sensorIndex] = v[i];
@@ -125,7 +125,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         }
     }
 
-    // ƒZƒ“ƒT[ƒf[ƒ^‚ğXV‚·‚é
+    // ã‚»ãƒ³ã‚µãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°ã™ã‚‹
     private void refreshSensorData() {
         if (sensorService != null) {
             float tmp[] = sensorService.getValues();
@@ -156,7 +156,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             if (canvas == null)
                 continue;
 
-            // ”wŒi‚ğ“h‚è‚Â‚Ô‚·
+            // èƒŒæ™¯ã‚’å¡—ã‚Šã¤ã¶ã™
             canvas.drawColor(Color.BLACK);
 
             float fontSize = 50f;
@@ -181,7 +181,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             paint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
 
-            // ‹Cˆ³ƒZƒ“ƒT[‚Ìƒf[ƒ^‚ğƒOƒ‰ƒt‰»
+            // æ°—åœ§ã‚»ãƒ³ã‚µãƒ¼ã®ãƒ‡ãƒ¼ã‚¿ã‚’ã‚°ãƒ©ãƒ•åŒ–
             for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
                 if (i == sensorIndex) {
                     paint.setColor(Color.argb(255, 255, 100, 100));
@@ -205,7 +205,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        // ƒZƒ“ƒT[‚Ìƒf[ƒ^‚ğXV‚·‚é
+        // ã‚»ãƒ³ã‚µãƒ¼ã®ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°ã™ã‚‹
         refreshSensorData();
 
         num = event.getPointerCount();
@@ -218,8 +218,8 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             ball.setCoodinate(event.getX(), event.getY());
         }
 
-        // Android‚Ìd—l‚ª‚¿‚å‚Á‚ÆƒoƒO‚¢Btrue ‚ğ•Ô‚³‚¸ super.onTouchEvent(event) ‚ğ•Ô‚·‚Æ
-        // false ‚É‚È‚Á‚Ä‚¢‚Ä¬—§‚µ‚È‚­‚È‚é‚ç‚µ‚¢B
+        // Androidã®ä»•æ§˜ãŒã¡ã‚‡ã£ã¨ãƒã‚°ã„ã€‚true ã‚’è¿”ã•ãš super.onTouchEvent(event) ã‚’è¿”ã™ã¨
+        // false ã«ãªã£ã¦ã„ã¦æˆç«‹ã—ãªããªã‚‹ã‚‰ã—ã„ã€‚
         return true;
     }
 
