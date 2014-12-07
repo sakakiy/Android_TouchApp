@@ -46,6 +46,9 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     private int           sensorIndex;
     private String        logStr;
 
+    // データ永続のテスト値
+    private long          testLongValue   = System.currentTimeMillis();
+
     public SimpleView(Context context) {
         super(context);
 
@@ -140,6 +143,26 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         }
     }
 
+    // センサデータの取得
+    public float[] getValues() {
+        return sensorValues;
+    }
+
+    // センサデータのインデックスの取得
+    public int getIndex() {
+        return sensorIndex;
+    }
+
+    // テスト値取得
+    public long getTestValue() {
+        return testLongValue;
+    }
+
+    // テスト値セット
+    public void setTestValue(long v) {
+        testLongValue = v;
+    }
+
     @Override
     public void run() {
         while (thread != null) {
@@ -169,6 +192,8 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                     marginX, 50 + (marginY + fontSize) * 1, paint);
             canvas.drawText(logStr, marginX, 50 + (marginY + fontSize) * 2,
                     paint);
+            canvas.drawText(Long.toString(testLongValue), marginX,
+                    50 + (marginY + fontSize) * 3, paint);
 
             paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setStyle(Paint.Style.STROKE);

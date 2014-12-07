@@ -1,14 +1,11 @@
 package com.example.touchapplication;
 
-import android.R.integer;
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -34,6 +31,9 @@ public class MainActivity extends Activity {
     // Notification note;
     private final int      NOTE_ID = 120;
 
+    // データの保存
+    SharedPreferences      sharedPref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,23 +47,8 @@ public class MainActivity extends Activity {
         // 自作サービス
         serviceIntent = new Intent(this, SensorService.class);
 
-        // 通知
-        // notiMng = (NotificationManager)
-        // getSystemService(Context.NOTIFICATION_SERVICE);
-
-        /*
-         * Intent launchIntent = new Intent(getApplicationContext(),
-         * MainActivity.class);
-         * launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); PendingIntent
-         * pendingIntent = PendingIntent.getActivity( getApplicationContext(),
-         * 0, launchIntent, 0);
-         * 
-         * // Notification Setting note = new
-         * Notification.Builder(getApplicationContext())
-         * .setContentTitle("New Notification")
-         * .setContentText("Sensing.....").setContentIntent(pendingIntent)
-         * .setOngoing(true).setSmallIcon(R.drawable.ic_launcher).build();
-         */
+        // 永続データ
+        sharedPref = getPreferences(Activity.MODE_PRIVATE);
     }
 
     private void settingLayout() {
@@ -114,8 +99,8 @@ public class MainActivity extends Activity {
 
         layout.addView(stopButton, paramBottom);
     }
-    
-    public void setSensorData(float[] v, int index){
+
+    public void setSensorData(float[] v, int index) {
         simpleView.setSensorData(v, index);
     }
 
@@ -129,6 +114,8 @@ public class MainActivity extends Activity {
         // サービスにバインドする
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
+        // 永続データ（データがなかったら111を返す）
+        simpleView.setTestValue(sharedPref.getLong("TEST_VALUE", 111));
     }
 
     @Override
@@ -140,6 +127,11 @@ public class MainActivity extends Activity {
             Log.v("Activity", "Stop Service");
         }
         unbindService(serviceConnection);
+
+        // 永続データ
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putLong("TEST_VALUE", simpleView.getTestValue());
+        editor.commit();
     }
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
