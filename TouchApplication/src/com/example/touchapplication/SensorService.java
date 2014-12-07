@@ -46,9 +46,6 @@ public class SensorService extends Service implements SensorEventListener {
 
     private int                 counter             = 0;
 
-    private int                 originalID          = (int) (1000000 * Math
-                                                            .random());
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -184,7 +181,6 @@ public class SensorService extends Service implements SensorEventListener {
 
     // センサデータを格納した配列を返す
     public float[] getValues() {
-        Log.v("SensoeService", "ID : " + Integer.toString(originalID));
         return values;
     }
 
