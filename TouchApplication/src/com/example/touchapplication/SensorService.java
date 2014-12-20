@@ -30,7 +30,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     // 計測インターバル関連
     private long                lastSensingTime;
-    private final long          intervalSensingTime = 15 * 60 * 1000;     // MilliSecond
+    private final long          intervalSensingTime = 15 * 60 * 1000;       // MilliSecond
 
     // 保持する計測データを格納する配列
     private float               values[]            = new float[DATA_NUM];

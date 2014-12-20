@@ -4,50 +4,40 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
-        Runnable, SensorEventListener {
+        Runnable {
+    private MainActivity  mainActivity;
 
     private Paint         paint;
     private Thread        thread;
     private SurfaceHolder holder;
     private BoundBall     ball;
 
-    // 気圧センサ、照度センサ
-    private SensorManager sensorMng;
-    private Sensor        pressureSensor;
-    private float         pressureValue;
-    private Sensor        lightSensor;
-    private float         lightValue;
-
     // 画面サイズ
     private int           width;
     private int           height;
 
     // マルチタッチ点の表示
-    final private int     NUM_MAX         = 10;
-    private int           num             = 0;
-    private float[]       x               = new float[NUM_MAX];
-    private float[]       y               = new float[NUM_MAX];
+    final private int     TOUCH_NUM_MAX  = 10;
+    private int           num            = 0;
+    private float[]       x              = new float[TOUCH_NUM_MAX];
+    private float[]       y              = new float[TOUCH_NUM_MAX];
 
     // センサのサービスから値を受け取る
-    private SensorService sensorService;
-    private final int     GRAPH_VALUE_NUM = SensorService.DATA_NUM;
-    private float         graphX, graphY, graphMargin, graphWidth;
-    private float         sensorValues[]  = new float[GRAPH_VALUE_NUM];
+    private final int     VALUE_MAX      = SensorService.DATA_NUM;
+    private float         sensorValues[] = new float[VALUE_MAX];
     private int           sensorIndex;
+
+    private float         graphX, graphY, graphMargin, graphWidth;
     private String        logStr;
 
     // データ永続のテスト値
-    private long          testLongValue   = System.currentTimeMillis();
+    private long          testLongValue  = 0;
 
     public SimpleView(Context context) {
         super(context);
@@ -55,7 +45,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         thread = null;
         paint = new Paint();
 
-        for (int i = 0; i < NUM_MAX; i++) {
+        for (int i = 0; i < TOUCH_NUM_MAX; i++) {
             x[i] = 0;
             y[i] = 0;
         }
@@ -67,21 +57,24 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         holder = getHolder();
         holder.addCallback(this);
 
-        sensorMng = (SensorManager) context
-                .getSystemService(Context.SENSOR_SERVICE);
-
         // センサのグラフ関連のフィールドの初期化
-        for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
+        for (int i = 0; i < VALUE_MAX; i++) {
             sensorValues[i] = 0;
         }
         graphMargin = 3;
         graphX = 100;
         graphY = 800;
         width = 1080;
-        graphWidth = ((width - graphX * 2) + graphMargin) / GRAPH_VALUE_NUM
+        graphWidth = ((width - graphX * 2) + graphMargin) / VALUE_MAX
                 - graphMargin;
         sensorIndex = 0;
         logStr = "LOG";
+    }
+
+    public void setMainActivity(MainActivity ma) {
+        if (mainActivity == null) {
+            mainActivity = ma;
+        }
     }
 
     @Override
@@ -90,14 +83,6 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
         width = getWidth();
         height = getHeight();
-
-        // 気圧センサー
-        pressureSensor = sensorMng.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        sensorMng.registerListener(this, pressureSensor,
-                SensorManager.SENSOR_DELAY_UI);
-        lightSensor = sensorMng.getDefaultSensor(Sensor.TYPE_LIGHT);
-        sensorMng.registerListener(this, lightSensor,
-                SensorManager.SENSOR_DELAY_UI);
 
         // 気圧センサーサービスから値の配列をもらう
         refreshSensorData();
@@ -117,45 +102,24 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.v("SimpleView", "surface destroyed");
         thread = null;
-        sensorMng.unregisterListener(this);
     }
 
-    // センサーデータを更新する
-    public void setSensorData(float[] v, int index) {
-        for (int i = 0; i < index; i++) {
-            sensorValues[sensorIndex] = v[i];
-            sensorIndex = (sensorIndex + 1) % GRAPH_VALUE_NUM;
-        }
-    }
-
+    // TODO Activity から取得するように変更
     // センサーデータを更新する
     private void refreshSensorData() {
-        if (sensorService != null) {
-            float tmp[] = sensorService.getValues();
-            for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
-                sensorValues[i] = tmp[i];
+        if (mainActivity != null) {
+            sensorIndex = mainActivity.getSensorIndex();
+            float[] tmpValues = mainActivity.getSensorValues();
+            for (int i = 0; i < VALUE_MAX; i++) {
+                sensorValues[i] = tmpValues[i];
             }
-            sensorIndex = sensorService.getIndex();
-            logStr = "sensorService is not NULL";
-
-        } else {
-            logStr = "sensorService is NULL";
         }
-    }
-
-    // センサデータの取得
-    public float[] getValues() {
-        return sensorValues;
-    }
-
-    // センサデータのインデックスの取得
-    public int getIndex() {
-        return sensorIndex;
-    }
-
-    // テスト値取得
-    public long getTestValue() {
-        return testLongValue;
+        /*
+         * if (sensorService != null) { float tmp[] = sensorService.getValues();
+         * for (int i = 0; i < GRAPH_VALUE_NUM; i++) { sensorValues[i] = tmp[i];
+         * } sensorIndex = sensorService.getIndex(); logStr =
+         * "sensorService is not NULL";}
+         */
     }
 
     // テスト値セット
@@ -186,14 +150,10 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             float marginX = 20;
             float marginY = 10;
             paint.setTextSize(fontSize);
-            canvas.drawText("Pressure : " + Float.toString(pressureValue),
-                    marginX, 50 + (marginY + fontSize) * 0, paint);
-            canvas.drawText("Light    : " + Float.toString(lightValue),
-                    marginX, 50 + (marginY + fontSize) * 1, paint);
-            canvas.drawText(logStr, marginX, 50 + (marginY + fontSize) * 2,
+            canvas.drawText(logStr, marginX, 250 + (marginY + fontSize) * 2,
                     paint);
             canvas.drawText(Long.toString(testLongValue), marginX,
-                    50 + (marginY + fontSize) * 3, paint);
+                    250 + (marginY + fontSize) * 3, paint);
 
             paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setStyle(Paint.Style.STROKE);
@@ -207,7 +167,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
 
             // 気圧センサーのデータをグラフ化
-            for (int i = 0; i < GRAPH_VALUE_NUM; i++) {
+            for (int i = 0; i < VALUE_MAX; i++) {
                 if (i == sensorIndex) {
                     paint.setColor(Color.argb(255, 255, 100, 100));
                 } else {
@@ -221,10 +181,6 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
 
             holder.unlockCanvasAndPost(canvas);
         }
-    }
-
-    public void setSensorService(SensorService ss) {
-        this.sensorService = ss;
     }
 
     @Override
@@ -265,19 +221,5 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             ball.inverseVy();
         }
 
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
-            pressureValue = event.values[0];
-        } else if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
-            lightValue = event.values[0];
-        }
-
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 }

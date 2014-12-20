@@ -20,16 +20,14 @@ public class MainActivity extends Activity {
     // センサー甩のサービス
     private SensorService  sensorService;
     private Intent         serviceIntent;
+    private int            VALUE_MAX      = SensorService.DATA_NUM;
+    private float          sensorValues[] = new float[SensorService.DATA_NUM];
+    private int            sensorIndex;
 
     // ビュー
     private SimpleView     simpleView;
     private RelativeLayout layout;
     private Button         startButton, stopButton;
-
-    // 通知
-    // NotificationManager notiMng;
-    // Notification note;
-    private final int      NOTE_ID = 120;
 
     // データの保存
     SharedPreferences      sharedPref;
@@ -69,9 +67,6 @@ public class MainActivity extends Activity {
 
                 // test
                 startService(serviceIntent);
-
-                // Notification start
-                // notiMng.notify(NOTE_ID, note);
             }
         });
         RelativeLayout.LayoutParams paramTop = new RelativeLayout.LayoutParams(
@@ -88,9 +83,6 @@ public class MainActivity extends Activity {
 
                 // test
                 stopService(serviceIntent);
-
-                // Notification cancel
-                // notiMng.cancel(NOTE_ID);
             }
         });
         RelativeLayout.LayoutParams paramBottom = new RelativeLayout.LayoutParams(
@@ -98,10 +90,34 @@ public class MainActivity extends Activity {
         paramBottom.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
         layout.addView(stopButton, paramBottom);
+
+        // MainActivity を登録
+        simpleView.setMainActivity(this);
     }
 
     public void setSensorData(float[] v, int index) {
-        simpleView.setSensorData(v, index);
+        // simpleView.setSensorData(v, index);
+
+        // 値を SharedPreference に保持し続ける
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        // 値をサービスから受け取り Activity の配列に保持する
+        for (int i = 0; i < index; i++) {
+            sensorIndex = (sensorIndex + 1) % VALUE_MAX;
+            sensorValues[sensorIndex] = v[i];
+            editor.putFloat(Integer.toString(sensorIndex),
+                    sensorValues[sensorIndex]);
+        }
+        editor.putInt("INDEX", sensorIndex);
+        editor.commit();
+    }
+
+    public float[] getSensorValues() {
+        return sensorValues;
+    }
+
+    public int getSensorIndex() {
+        return sensorIndex;
     }
 
     @Override
@@ -116,6 +132,14 @@ public class MainActivity extends Activity {
 
         // 永続データ（データがなかったら111を返す）
         simpleView.setTestValue(sharedPref.getLong("TEST_VALUE", 111));
+
+        // センサデータ復旧
+        for (int i = 0; i < VALUE_MAX; i++) {
+            // データが無かったら 10 を返す
+            sensorValues[i] = sharedPref.getFloat(Integer.toString(i), 10);
+        }
+        sensorIndex = sharedPref.getInt("INDEX", 0);
+        simpleView.refreshDrawableState();
     }
 
     @Override
@@ -130,7 +154,7 @@ public class MainActivity extends Activity {
 
         // 永続データ
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putLong("TEST_VALUE", simpleView.getTestValue());
+        // editor.putLong("TEST_VALUE", simpleView.getTestValue());
         editor.commit();
     }
 
@@ -145,8 +169,6 @@ public class MainActivity extends Activity {
                                                         sensorService = ((SensorService.ServiceBinder) service)
                                                                 .getService();
 
-                                                        simpleView
-                                                                .setSensorService(sensorService);
                                                         sensorService
                                                                 .setActivity(MainActivity.this);
                                                     }
