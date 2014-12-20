@@ -46,7 +46,9 @@ public class MainActivity extends Activity {
         serviceIntent = new Intent(this, SensorService.class);
 
         // 永続データ
-        sharedPref = getPreferences(Activity.MODE_PRIVATE);
+        sharedPref = getSharedPreferences(SensorService.PREF_NAME,
+                Activity.MODE_PRIVATE);
+        // sharedPref = getPreferences(Activity.MODE_PRIVATE);
     }
 
     private void settingLayout() {
@@ -95,29 +97,26 @@ public class MainActivity extends Activity {
         simpleView.setMainActivity(this);
     }
 
-    public void setSensorData(float[] v, int index) {
-        // simpleView.setSensorData(v, index);
-
-        // 値を SharedPreference に保持し続ける
-        SharedPreferences.Editor editor = sharedPref.edit();
-
-        // 値をサービスから受け取り Activity の配列に保持する
-        for (int i = 0; i < index; i++) {
-            sensorIndex = (sensorIndex + 1) % VALUE_MAX;
-            sensorValues[sensorIndex] = v[i];
-            editor.putFloat(Integer.toString(sensorIndex),
-                    sensorValues[sensorIndex]);
-        }
-        editor.putInt("INDEX", sensorIndex);
-        editor.commit();
-    }
-
     public float[] getSensorValues() {
         return sensorValues;
     }
 
     public int getSensorIndex() {
         return sensorIndex;
+    }
+
+    public void refreshSensorData() {
+        // 永続データ（データがなかったら111を返す）
+        simpleView.setTestValue(sharedPref.getLong("TEST_VALUE", 111));
+
+        // センサデータ復旧
+        for (int i = 0; i < VALUE_MAX; i++) {
+            // データが無かったら 10 を返す
+            sensorValues[i] = sharedPref.getFloat(SensorService.SENSOR_VALUE
+                    + Integer.toString(i), 10);
+        }
+        sensorIndex = sharedPref.getInt("INDEX", 0);
+        simpleView.refreshDrawableState();
     }
 
     @Override
@@ -130,16 +129,7 @@ public class MainActivity extends Activity {
         // サービスにバインドする
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
-        // 永続データ（データがなかったら111を返す）
-        simpleView.setTestValue(sharedPref.getLong("TEST_VALUE", 111));
-
-        // センサデータ復旧
-        for (int i = 0; i < VALUE_MAX; i++) {
-            // データが無かったら 10 を返す
-            sensorValues[i] = sharedPref.getFloat(Integer.toString(i), 10);
-        }
-        sensorIndex = sharedPref.getInt("INDEX", 0);
-        simpleView.refreshDrawableState();
+        refreshSensorData();
     }
 
     @Override
@@ -151,11 +141,6 @@ public class MainActivity extends Activity {
             Log.v("Activity", "Stop Service");
         }
         unbindService(serviceConnection);
-
-        // 永続データ
-        SharedPreferences.Editor editor = sharedPref.edit();
-        // editor.putLong("TEST_VALUE", simpleView.getTestValue());
-        editor.commit();
     }
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -168,9 +153,6 @@ public class MainActivity extends Activity {
                                                                 "onServiceConnected");
                                                         sensorService = ((SensorService.ServiceBinder) service)
                                                                 .getService();
-
-                                                        sensorService
-                                                                .setActivity(MainActivity.this);
                                                     }
 
                                                     @Override

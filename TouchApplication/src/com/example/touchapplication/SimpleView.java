@@ -66,7 +66,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         }
         graphMargin = 3;
         graphX = 100;
-        graphY = 800;
+        graphY = 1100;
         width = 1080;
         graphWidth = ((width - graphX * 2) + graphMargin) / VALUE_MAX
                 - graphMargin;
@@ -111,6 +111,7 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     // センサーデータを更新する
     private void refreshSensorData() {
         if (mainActivity != null) {
+            mainActivity.refreshSensorData();
             sensorIndex = mainActivity.getSensorIndex();
             float[] tmpValues = mainActivity.getSensorValues();
             for (int i = 0; i < VALUE_MAX; i++) {
@@ -168,19 +169,19 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             paint.setTextSize(fontSize);
             paint.setStyle(Paint.Style.FILL_AND_STROKE);
             paint.setColor(Color.argb(255, 150, 255, 255));
-            canvas.drawText(logStr, marginX, 250 + (marginY + fontSize) * 0,
+            canvas.drawText(logStr, marginX, 200 + (marginY + fontSize) * 0,
                     paint);
             canvas.drawText(Long.toString(testLongValue), marginX,
-                    250 + (marginY + fontSize) * 1, paint);
+                    200 + (marginY + fontSize) * 1, paint);
             canvas.drawText(
                     "Pressure : " + Float.toString(sensorValues[sensorIndex]),
-                    marginX, 250 + (marginY + fontSize) * 2, paint);
+                    marginX, 200 + (marginY + fontSize) * 2, paint);
             canvas.drawText(Float.toString(touchY[0]), marginX,
-                    250 + (marginY + fontSize) * 3, paint);
+                    200 + (marginY + fontSize) * 4, paint);
             canvas.drawText(Float.toString(touchY[1]), marginX,
-                    250 + (marginY + fontSize) * 4, paint);
+                    200 + (marginY + fontSize) * 5, paint);
             canvas.drawText(Float.toString(touchY[2]), marginX,
-                    250 + (marginY + fontSize) * 5, paint);
+                    200 + (marginY + fontSize) * 6, paint);
 
             // ボール描画
             paint.setColor(Color.argb(255, 150, 150, 255));

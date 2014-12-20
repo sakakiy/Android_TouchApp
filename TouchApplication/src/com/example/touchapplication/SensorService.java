@@ -1,20 +1,22 @@
 package com.example.touchapplication;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,21 +32,29 @@ public class SensorService extends Service implements SensorEventListener {
 
     // 計測インターバル関連
     private long                lastSensingTime;
-    private final long          intervalSensingTime = 15 * 60 * 1000;       // MilliSecond
+    private final long          intervalSensingTime = 1 * 10 * 1000;     // MilliSecond
 
     // 保持する計測データを格納する配列
-    private float               values[]            = new float[DATA_NUM];
-    private int                 valueIndex          = 0;
+    private float               sensorValues[]      = new float[DATA_NUM];
+    private int                 sensorIndex         = 0;
+    private int                 sensorValueCounter  = 0;
+    private String              currentDate         = "";
+    private String              currentTime         = "";
 
     // 通知
     private NotificationManager notiMng;
     private Notification        note;
     private final int           NOTE_ID             = 123;
 
-    // アクティビティ
-    private MainActivity        mainActivity        = null;
+    // Activity と共有するための SharedPreferences
+    private SharedPreferences   sharedPref;
 
-    private int                 counter             = 0;
+    public static final String  PREF_NAME           = "SENSOR_SERVICE";
+
+    public static final String  SENSOR_INDEX        = "SENSOR_INDEX";
+    public static final String  SENSOR_VALUE        = "SENSOR_VALUE_";
+    public static final String  SENSOR_DATE         = "SENSOR_DATE_";
+    public static final String  SENSOR_TIME         = "SENSOR_TIME_";
 
     @Override
     public void onCreate() {
@@ -66,15 +76,13 @@ public class SensorService extends Service implements SensorEventListener {
                 .setContentText("--").setSmallIcon(R.drawable.ic_launcher)
                 .build();
 
-        counter = 0;
+        sensorValueCounter = 0;
 
         // test
         startSensor();
 
-    }
-
-    public void setActivity(MainActivity act) {
-        mainActivity = act;
+        // SharedPreferences
+        sharedPref = getSharedPreferences(PREF_NAME, Activity.MODE_PRIVATE);
     }
 
     @Override
@@ -126,24 +134,25 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime > lastSensingTime + intervalSensingTime) {
+        long currentTimeMillis = System.currentTimeMillis();
+        if (currentTimeMillis > lastSensingTime + intervalSensingTime) {
             Log.v(LOGSTR,
                     "onSensorChanged : Value "
                             + Float.toString(event.values[0]));
 
-            // 自分の中でデータを保持する
-            valueIndex = (valueIndex + 1) % DATA_NUM;
-            values[valueIndex] = event.values[0];
+            // 自分の中でデータを保持する（インデックスは処理の最後で増やす）
+            sensorValues[sensorIndex] = event.values[0];
 
             // 通知時間取得
-            String time = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
-                    .format(new Date());
+            currentDate = DateFormat.format("yyyy/MM/dd",
+                    Calendar.getInstance()).toString();
+            this.currentTime = DateFormat.format("HH:mm:ss",
+                    Calendar.getInstance()).toString();
 
             // データを通知
-            counter++;
-            String notiStr = Integer.toString(counter) + " : "
-                    + Float.toString(values[valueIndex]);
+            sensorValueCounter++;
+            String notiStr = Integer.toString(sensorValueCounter) + " : "
+                    + Float.toString(sensorValues[sensorIndex]);
 
             notiMng.cancel(NOTE_ID);
 
@@ -155,7 +164,8 @@ public class SensorService extends Service implements SensorEventListener {
                     getApplicationContext(), 0, launchIntent, 0);
             note = new Notification.Builder(getApplicationContext())
                     .setContentTitle("Pressure Service")
-                    .setContentText(time + " ** " + notiStr)
+                    .setContentText(
+                            currentDate + " " + currentTime + " ** " + notiStr)
                     .setContentIntent(pendingIntent)
                     .setSmallIcon(R.drawable.ic_launcher).build();
 
@@ -164,28 +174,40 @@ public class SensorService extends Service implements SensorEventListener {
             Toast.makeText(this, "[Sensor]" + notiStr, Toast.LENGTH_SHORT)
                     .show();
 
-            // MainActivity にセンサデータを反映
-            if (mainActivity != null) {
-                float[] v = new float[counter];
-                for (int i = 0; i < counter; i++) {
-                    v[i] = values[(valueIndex + i) % DATA_NUM];
-                }
-                mainActivity.setSensorData(v, counter);
-                counter = 0;
-            }
+            // センサデータを保存
+            saveSensorData();
+            sensorValueCounter = 0;
+
+            // 次に備えインデックス増やす
+            sensorIndex = (sensorIndex + 1) % DATA_NUM;
 
             // 現在の時間を記録
-            lastSensingTime = currentTime;
+            lastSensingTime = currentTimeMillis;
         }
+    }
+
+    // センサデータを保存
+    private void saveSensorData() {
+        // 値を SharedPreference に保持し続ける
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        editor.putInt(SENSOR_INDEX, sensorIndex);
+        editor.putFloat(SENSOR_VALUE + Integer.toString(sensorIndex),
+                sensorValues[sensorIndex]);
+        editor.putString(SENSOR_DATE, currentDate);
+        editor.putString(SENSOR_TIME, currentTime);
+
+        editor.putInt("INDEX", sensorIndex);
+        editor.commit();
     }
 
     // センサデータを格納した配列を返す
     public float[] getValues() {
-        return values;
+        return sensorValues;
     }
 
     public int getIndex() {
-        return valueIndex;
+        return sensorIndex;
     }
 
     @Override
