@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
     private Intent         serviceIntent;
     private int            VALUE_MAX      = SensorService.DATA_NUM;
     private float          sensorValues[] = new float[SensorService.DATA_NUM];
+    private SensorData     sensorData[]   = new SensorData[SensorService.DATA_NUM];
     private int            sensorIndex;
 
     // ビュー
@@ -41,6 +42,10 @@ public class MainActivity extends Activity {
         layout = new RelativeLayout(this);
         setContentView(layout);
         settingLayout();
+
+        for (int i = 0; i < VALUE_MAX; i++) {
+            sensorData[i] = new SensorData();
+        }
 
         // 自作サービス
         serviceIntent = new Intent(this, SensorService.class);
@@ -101,19 +106,29 @@ public class MainActivity extends Activity {
         return sensorValues;
     }
 
+    public SensorData[] getSensorData() {
+        return sensorData;
+    }
+
     public int getSensorIndex() {
         return sensorIndex;
     }
 
     public void refreshSensorData() {
-        // 永続データ（データがなかったら111を返す）
-        simpleView.setTestValue(sharedPref.getLong("TEST_VALUE", 111));
 
         // センサデータ復旧
         for (int i = 0; i < VALUE_MAX; i++) {
             // データが無かったら 10 を返す
             sensorValues[i] = sharedPref.getFloat(SensorService.SENSOR_VALUE
                     + Integer.toString(i), 10);
+
+            // SensorData クラスを使ってみる
+            sensorData[i].setSensorValue(sharedPref.getFloat(
+                    SensorService.SENSOR_VALUE + Integer.toString(i), 10));
+            sensorData[i].setDate(sharedPref.getString(
+                    SensorService.SENSOR_DATE + Integer.toString(i), "null"));
+            sensorData[i].setTime(sharedPref.getString(
+                    SensorService.SENSOR_TIME + Integer.toString(i), "null"));
         }
         sensorIndex = sharedPref.getInt("INDEX", 0);
         simpleView.refreshDrawableState();

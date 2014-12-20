@@ -1,5 +1,6 @@
 package com.example.touchapplication;
 
+import android.R.integer;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -32,12 +33,9 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     private final int     VALUE_MAX      = SensorService.DATA_NUM;
     private float         sensorValues[] = new float[VALUE_MAX];
     private int           sensorIndex;
+    private SensorData[]  sensorData     = new SensorData[SensorService.DATA_NUM];
 
     private float         graphX, graphY, graphMargin, graphWidth;
-    private String        logStr;
-
-    // データ永続のテスト値
-    private long          testLongValue  = 0;
 
     // タッチにより動的に値を変える。位置などに自由に使う
     private float[]       touchY         = new float[3];
@@ -71,7 +69,11 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         graphWidth = ((width - graphX * 2) + graphMargin) / VALUE_MAX
                 - graphMargin;
         sensorIndex = 0;
-        logStr = "LOG";
+
+        // SensorData initialize
+        for (int i = 0; i < VALUE_MAX; i++) {
+            sensorData[i] = new SensorData();
+        }
     }
 
     public void setMainActivity(MainActivity ma) {
@@ -111,18 +113,19 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     // センサーデータを更新する
     private void refreshSensorData() {
         if (mainActivity != null) {
+
             mainActivity.refreshSensorData();
             sensorIndex = mainActivity.getSensorIndex();
             float[] tmpValues = mainActivity.getSensorValues();
+
+            SensorData[] sData = mainActivity.getSensorData();
             for (int i = 0; i < VALUE_MAX; i++) {
                 sensorValues[i] = tmpValues[i];
-            }
-        }
-    }
 
-    // テスト値セット
-    public void setTestValue(long v) {
-        testLongValue = v;
+                sensorData[i] = sData[i];
+            }
+
+        }
     }
 
     @Override
@@ -169,19 +172,38 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             paint.setTextSize(fontSize);
             paint.setStyle(Paint.Style.FILL_AND_STROKE);
             paint.setColor(Color.argb(255, 150, 255, 255));
-            canvas.drawText(logStr, marginX, 200 + (marginY + fontSize) * 0,
-                    paint);
-            canvas.drawText(Long.toString(testLongValue), marginX,
-                    200 + (marginY + fontSize) * 1, paint);
+
+            canvas.drawText(sensorData[sensorIndex].getDateTime() + " ATM : "
+                    + Float.toString(sensorValues[sensorIndex]), marginX,
+                    200 + (marginY + fontSize) * 0, paint);
+            int pastSensorIndex = 0;
+            pastSensorIndex = (sensorIndex - 1 + VALUE_MAX) % VALUE_MAX;
             canvas.drawText(
-                    "Pressure : " + Float.toString(sensorValues[sensorIndex]),
+                    sensorData[pastSensorIndex].getDateTime() + " ATM : "
+                            + Float.toString(sensorValues[pastSensorIndex]),
+                    marginX, 200 + (marginY + fontSize) * 1, paint);
+            pastSensorIndex = (sensorIndex - 2 + VALUE_MAX) % VALUE_MAX;
+            canvas.drawText(
+                    sensorData[pastSensorIndex].getDateTime() + " ATM : "
+                            + Float.toString(sensorValues[pastSensorIndex]),
                     marginX, 200 + (marginY + fontSize) * 2, paint);
+            pastSensorIndex = (sensorIndex - 3 + VALUE_MAX) % VALUE_MAX;
+            canvas.drawText(
+                    sensorData[pastSensorIndex].getDateTime() + " ATM : "
+                            + Float.toString(sensorValues[pastSensorIndex]),
+                    marginX, 200 + (marginY + fontSize) * 3, paint);
+            pastSensorIndex = (sensorIndex - 4 + VALUE_MAX) % VALUE_MAX;
+            canvas.drawText(
+                    sensorData[pastSensorIndex].getDateTime() + " ATM : "
+                            + Float.toString(sensorValues[pastSensorIndex]),
+                    marginX, 200 + (marginY + fontSize) * 4, paint);
+
             canvas.drawText(Float.toString(touchY[0]), marginX,
-                    200 + (marginY + fontSize) * 4, paint);
-            canvas.drawText(Float.toString(touchY[1]), marginX,
                     200 + (marginY + fontSize) * 5, paint);
-            canvas.drawText(Float.toString(touchY[2]), marginX,
+            canvas.drawText(Float.toString(touchY[1]), marginX,
                     200 + (marginY + fontSize) * 6, paint);
+            canvas.drawText(Float.toString(touchY[2]), marginX,
+                    200 + (marginY + fontSize) * 7, paint);
 
             // ボール描画
             paint.setColor(Color.argb(255, 150, 150, 255));

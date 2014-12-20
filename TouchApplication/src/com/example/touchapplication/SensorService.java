@@ -32,7 +32,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     // 計測インターバル関連
     private long                lastSensingTime;
-    private final long          intervalSensingTime = 1 * 10 * 1000;     // MilliSecond
+    private final long          intervalSensingTime = 1 * 10 * 1000;      // MilliSecond
 
     // 保持する計測データを格納する配列
     private float               sensorValues[]      = new float[DATA_NUM];
@@ -194,8 +194,10 @@ public class SensorService extends Service implements SensorEventListener {
         editor.putInt(SENSOR_INDEX, sensorIndex);
         editor.putFloat(SENSOR_VALUE + Integer.toString(sensorIndex),
                 sensorValues[sensorIndex]);
-        editor.putString(SENSOR_DATE, currentDate);
-        editor.putString(SENSOR_TIME, currentTime);
+        editor.putString(SENSOR_DATE + Integer.toString(sensorIndex),
+                currentDate);
+        editor.putString(SENSOR_TIME + Integer.toString(sensorIndex),
+                currentTime);
 
         editor.putInt("INDEX", sensorIndex);
         editor.commit();
