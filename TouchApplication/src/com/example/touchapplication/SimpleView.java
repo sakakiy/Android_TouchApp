@@ -39,6 +39,9 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
     // データ永続のテスト値
     private long          testLongValue  = 0;
 
+    // タッチにより動的に値を変える。位置などに自由に使う
+    private float[]       touchY         = new float[3];
+
     public SimpleView(Context context) {
         super(context);
 
@@ -114,12 +117,6 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                 sensorValues[i] = tmpValues[i];
             }
         }
-        /*
-         * if (sensorService != null) { float tmp[] = sensorService.getValues();
-         * for (int i = 0; i < GRAPH_VALUE_NUM; i++) { sensorValues[i] = tmp[i];
-         * } sensorIndex = sensorService.getIndex(); logStr =
-         * "sensorService is not NULL";}
-         */
     }
 
     // テスト値セット
@@ -146,15 +143,16 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             // 背景を塗りつぶす
             canvas.drawColor(Color.BLACK);
 
-            float fontSize = 50f;
-            float marginX = 20;
-            float marginY = 10;
-            paint.setTextSize(fontSize);
-            canvas.drawText(logStr, marginX, 250 + (marginY + fontSize) * 2,
-                    paint);
-            canvas.drawText(Long.toString(testLongValue), marginX,
-                    250 + (marginY + fontSize) * 3, paint);
+            // タッチできる領域を塗りつぶす
+            int colorDark = 20;
+            paint.setColor(Color.argb(255, 0, 0, colorDark));
+            canvas.drawRect(0, 0, 3 * width / 3, height, paint);
+            paint.setColor(Color.argb(255, 0, colorDark, 0));
+            canvas.drawRect(0, 0, 2 * width / 3, height, paint);
+            paint.setColor(Color.argb(255, colorDark, 0, 0));
+            canvas.drawRect(0, 0, 1 * width / 3, height, paint);
 
+            // タッチ円描画
             paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setStyle(Paint.Style.STROKE);
 
@@ -162,6 +160,29 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                 canvas.drawCircle(x[i], y[i], 200, paint);
             }
 
+            // テキスト表示
+            float fontSize = 50f;
+            float marginX = 20;
+            float marginY = 10;
+
+            paint.setTextSize(fontSize);
+            paint.setStyle(Paint.Style.FILL_AND_STROKE);
+            paint.setColor(Color.argb(255, 150, 255, 255));
+            canvas.drawText(logStr, marginX, 250 + (marginY + fontSize) * 0,
+                    paint);
+            canvas.drawText(Long.toString(testLongValue), marginX,
+                    250 + (marginY + fontSize) * 1, paint);
+            canvas.drawText(
+                    "Pressure : " + Float.toString(sensorValues[sensorIndex]),
+                    marginX, 250 + (marginY + fontSize) * 2, paint);
+            canvas.drawText(Float.toString(touchY[0]), marginX,
+                    250 + (marginY + fontSize) * 3, paint);
+            canvas.drawText(Float.toString(touchY[1]), marginX,
+                    250 + (marginY + fontSize) * 4, paint);
+            canvas.drawText(Float.toString(touchY[2]), marginX,
+                    250 + (marginY + fontSize) * 5, paint);
+
+            // ボール描画
             paint.setColor(Color.argb(255, 150, 150, 255));
             paint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
@@ -198,6 +219,10 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         if (ball.isInside(event.getX(), event.getY())) {
             ball.setCoodinate(event.getX(), event.getY());
         }
+
+        // 自由に使える変数
+        touchY[(int) event.getX() / (width / 3)] = (height - event.getY())
+                / (float) height;
 
         // Androidの仕様がちょっとバグい。true を返さず super.onTouchEvent(event) を返すと
         // false になっていて成立しなくなるらしい。
