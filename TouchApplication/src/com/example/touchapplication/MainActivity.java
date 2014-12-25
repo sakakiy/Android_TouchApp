@@ -130,7 +130,7 @@ public class MainActivity extends Activity {
             sensorData[i].setTime(sharedPref.getString(
                     SensorService.SENSOR_TIME + Integer.toString(i), "null"));
         }
-        sensorIndex = sharedPref.getInt("INDEX", 0);
+        sensorIndex = sharedPref.getInt(SensorService.SENSOR_INDEX, 0);
         simpleView.refreshDrawableState();
     }
 

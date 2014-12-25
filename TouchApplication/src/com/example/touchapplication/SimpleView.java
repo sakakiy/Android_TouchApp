@@ -1,6 +1,5 @@
 package com.example.touchapplication;
 
-import android.R.integer;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;

@@ -23,7 +23,7 @@ import android.widget.Toast;
 public class SensorService extends Service implements SensorEventListener {
 
     private final String        LOGSTR              = "SensorService";    // ログで出すときのタグ名
-    public static final int     DATA_NUM            = 50;                 // 保持するデータ数
+    public static final int     DATA_NUM            = 100;                // 保持するデータ数
 
     // 気圧センサマネージャ
     private SensorManager       pressureMng;
@@ -32,12 +32,11 @@ public class SensorService extends Service implements SensorEventListener {
 
     // 計測インターバル関連
     private long                lastSensingTime;
-    private final long          intervalSensingTime = 1 * 10 * 1000;      // MilliSecond
+    private final long          intervalSensingTime = 30 * 60 * 1000;     // MilliSecond
 
     // 保持する計測データを格納する配列
     private float               sensorValues[]      = new float[DATA_NUM];
     private int                 sensorIndex         = 0;
-    private int                 sensorValueCounter  = 0;
     private String              currentDate         = "";
     private String              currentTime         = "";
 
@@ -55,6 +54,7 @@ public class SensorService extends Service implements SensorEventListener {
     public static final String  SENSOR_VALUE        = "SENSOR_VALUE_";
     public static final String  SENSOR_DATE         = "SENSOR_DATE_";
     public static final String  SENSOR_TIME         = "SENSOR_TIME_";
+    public static final String  SENSOR_LAST_TIME    = "SENSOR_LAST_TIME";
 
     @Override
     public void onCreate() {
@@ -76,13 +76,13 @@ public class SensorService extends Service implements SensorEventListener {
                 .setContentText("--").setSmallIcon(R.drawable.ic_launcher)
                 .build();
 
-        sensorValueCounter = 0;
-
         // test
         startSensor();
 
-        // SharedPreferences
+        // SharedPreferences からインデックスを取得する
         sharedPref = getSharedPreferences(PREF_NAME, Activity.MODE_PRIVATE);
+        sensorIndex = sharedPref.getInt(SENSOR_INDEX, 0);
+        lastSensingTime = sharedPref.getLong(SENSOR_LAST_TIME, 0);
     }
 
     @Override
@@ -150,9 +150,7 @@ public class SensorService extends Service implements SensorEventListener {
                     Calendar.getInstance()).toString();
 
             // データを通知
-            sensorValueCounter++;
-            String notiStr = Integer.toString(sensorValueCounter) + " : "
-                    + Float.toString(sensorValues[sensorIndex]);
+            String notiStr = Float.toString(sensorValues[sensorIndex]);
 
             notiMng.cancel(NOTE_ID);
 
@@ -176,12 +174,11 @@ public class SensorService extends Service implements SensorEventListener {
 
             // センサデータを保存
             saveSensorData();
-            sensorValueCounter = 0;
 
             // 次に備えインデックス増やす
             sensorIndex = (sensorIndex + 1) % DATA_NUM;
 
-            // 現在の時間を記録
+            // インターバルのため、現在の時間を記録
             lastSensingTime = currentTimeMillis;
         }
     }
@@ -189,6 +186,7 @@ public class SensorService extends Service implements SensorEventListener {
     // センサデータを保存
     private void saveSensorData() {
         // 値を SharedPreference に保持し続ける
+        sharedPref = getSharedPreferences(PREF_NAME, Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
 
         editor.putInt(SENSOR_INDEX, sensorIndex);
@@ -199,7 +197,7 @@ public class SensorService extends Service implements SensorEventListener {
         editor.putString(SENSOR_TIME + Integer.toString(sensorIndex),
                 currentTime);
 
-        editor.putInt("INDEX", sensorIndex);
+        editor.putLong(SENSOR_LAST_TIME, lastSensingTime);
         editor.commit();
     }
 
