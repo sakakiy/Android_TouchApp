@@ -1,5 +1,6 @@
 package com.example.touchapplication;
 
+import android.R.integer;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -210,14 +211,16 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
 
             // 気圧センサーのデータをグラフ化
+            int tmpIndex = 0;
             for (int i = 0; i < VALUE_MAX; i++) {
-                if (i == sensorIndex) {
+                tmpIndex = (i + 1  + sensorIndex) % VALUE_MAX;
+                if (tmpIndex == sensorIndex) {
                     paint.setColor(Color.argb(255, 255, 100, 100));
                 } else {
                     paint.setColor(Color.argb(255, 100, 255, 100));
                 }
                 canvas.drawRect(graphX + i * (graphWidth + graphMargin), graphY
-                        - 6 * (sensorValues[i] - 980), graphX + i
+                        - 6 * (sensorValues[tmpIndex] - 980), graphX + i
                         * (graphWidth + graphMargin) + graphWidth, graphY,
                         paint);
             }
