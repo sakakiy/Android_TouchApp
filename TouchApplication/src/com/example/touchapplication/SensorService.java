@@ -7,8 +7,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -83,6 +85,11 @@ public class SensorService extends Service implements SensorEventListener {
         sharedPref = getSharedPreferences(PREF_NAME, Activity.MODE_PRIVATE);
         sensorIndex = sharedPref.getInt(SENSOR_INDEX, 0);
         lastSensingTime = sharedPref.getLong(SENSOR_LAST_TIME, 0);
+        
+        // Battery Reaciever
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(broadcastReceiver, intentFilter);
     }
 
     @Override
@@ -91,10 +98,28 @@ public class SensorService extends Service implements SensorEventListener {
         Log.v(LOGSTR, "SensorService onDestroy");
         Toast.makeText(this, LOGSTR + " onDestroy", Toast.LENGTH_SHORT).show();
         pressureMng.unregisterListener(this);
+        
+        unregisterReceiver(broadcastReceiver);
 
         // test
         stopSensor();
     }
+    
+    public static BroadcastReceiver broadcastReceiver = new BroadcastReceiver(){
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // TODO Auto-generated method stub
+            if(intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)){
+                int batteryLevel = intent.getIntExtra("level", 0);
+                Log.v("BATTERY", "BATTERY LEVEL : " + Integer.toString(batteryLevel));
+                Toast.makeText(context, "BATTERY : " + Integer.toString(batteryLevel), Toast.LENGTH_SHORT).show();
+            }
+           
+            
+        }
+        
+    };
 
     public void startSensor() {
         pressureMng.registerListener(this, pressureSensor,
