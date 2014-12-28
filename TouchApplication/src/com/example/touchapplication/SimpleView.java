@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -201,13 +200,18 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
                     sensorData[pastSensorIndex].getDateTime() + " ATM : "
                             + Float.toString(sensorValues[pastSensorIndex]),
                     marginX, 200 + (marginY + fontSize) * 4, paint);
+            pastSensorIndex = (sensorIndex - 5 + VALUE_MAX) % VALUE_MAX;
+            canvas.drawText(
+                    sensorData[pastSensorIndex].getDateTime() + " ATM : "
+                            + Float.toString(sensorValues[pastSensorIndex]),
+                    marginX, 200 + (marginY + fontSize) * 5, paint);
 
             canvas.drawText(Float.toString(touchY[0]), marginX,
-                    200 + (marginY + fontSize) * 5, paint);
-            canvas.drawText(Float.toString(touchY[1]), marginX,
                     200 + (marginY + fontSize) * 6, paint);
-            canvas.drawText(Float.toString(touchY[2]), marginX,
+            canvas.drawText(Float.toString(touchY[1]), marginX,
                     200 + (marginY + fontSize) * 7, paint);
+            canvas.drawText(Float.toString(touchY[2]), marginX,
+                    200 + (marginY + fontSize) * 8, paint);
 
             // ボール描画
             paint.setColor(Color.argb(255, 150, 150, 255));
