@@ -1,6 +1,10 @@
 package com.example.touchapplication;
 
-import android.R.integer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -210,15 +214,28 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
             paint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(ball.getX(), ball.getY(), ball.getRadius(), paint);
 
+            // 今日の日付(MM/dd)を取得。怒られるのでロケールを追加する
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd",
+                    Locale.JAPANESE);
+            String currentDate = sdf.format(new Date());
             // 気圧センサーのデータをグラフ化
             int tmpIndex = 0;
             for (int i = 0; i < VALUE_MAX; i++) {
-                tmpIndex = (i + 1  + sensorIndex) % VALUE_MAX;
-                if (tmpIndex == sensorIndex) {
+
+                // グラフの描画順を変えるための一時変数
+                tmpIndex = (i + 1 + sensorIndex) % VALUE_MAX;
+
+                // グラフの色の変更
+                if (tmpIndex == sensorIndex) { // センサーのインデックスと同じなら赤く
                     paint.setColor(Color.argb(255, 255, 100, 100));
-                } else {
+                } else if (isMatchDate(currentDate,
+                        sensorData[tmpIndex].getDate())) { // 今日の日付ならちょっと色を付ける
+                    paint.setColor(Color.argb(255, 255, 200, 100));
+                } else { // それ以外は緑
                     paint.setColor(Color.argb(255, 100, 255, 100));
                 }
+
+                // グラフの描画
                 canvas.drawRect(graphX + i * (graphWidth + graphMargin), graphY
                         - 6 * (sensorValues[tmpIndex] - 980), graphX + i
                         * (graphWidth + graphMargin) + graphWidth, graphY,
@@ -229,9 +246,17 @@ public class SimpleView extends SurfaceView implements SurfaceHolder.Callback,
         }
     }
 
+    // 与えられた日付（MM/dd）が今日の日付と一致するかを調べる
+    private boolean isMatchDate(String currentDate, String date) {
+
+        String[] str = date.split("/");
+        date = new StringBuilder().append(str[1]).append("/").append(str[2])
+                .toString();
+        return date.equals(currentDate);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         // センサーのデータを更新する
         refreshSensorData();
 
