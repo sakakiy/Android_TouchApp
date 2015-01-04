@@ -1,7 +1,6 @@
 package com.example.touchapplication;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +8,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.ShareCompat.IntentBuilder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;

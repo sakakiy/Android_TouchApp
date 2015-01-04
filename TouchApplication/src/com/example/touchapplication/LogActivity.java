@@ -1,15 +1,9 @@
 package com.example.touchapplication;
 
-import android.R.integer;
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SurfaceView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -45,18 +39,26 @@ public class LogActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        // SharedPreferences から値を読み出し TextView  で表示
         String logStr = "";
+        int index = sharedPref.getInt(SensorService.SENSOR_INDEX, 0);
         for (int i = 0; i < SensorService.DATA_NUM; i++) {
-            logStr += String.format("[%03d]", i);
+            logStr += String.format("[%03d]  ", i);
             logStr += sharedPref.getString(
                     SensorService.SENSOR_DATE + Integer.toString(i), "null");
             logStr += " ";
             logStr += sharedPref.getString(
                     SensorService.SENSOR_TIME + Integer.toString(i), "null");
-            logStr += ":";
+            logStr += "     ";
             logStr += String.valueOf(sharedPref.getFloat(
                     SensorService.SENSOR_VALUE + Integer.toString(i), 0));
-            logStr += "\n";
+            
+            // インデックスが指す位置を表す 
+            if(i == index){
+                logStr += "  <--------- index ---------\n";
+            } else {
+                logStr += "\n";
+            }
         }
         textView.setText(logStr);
     }
