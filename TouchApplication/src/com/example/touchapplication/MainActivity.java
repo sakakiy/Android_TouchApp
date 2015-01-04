@@ -1,6 +1,7 @@
 package com.example.touchapplication;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +9,10 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.ShareCompat.IntentBuilder;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -54,6 +58,59 @@ public class MainActivity extends Activity {
         sharedPref = getSharedPreferences(SensorService.PREF_NAME,
                 Activity.MODE_PRIVATE);
         // sharedPref = getPreferences(Activity.MODE_PRIVATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.v("Activity", "Activity onResume");
+
+        // サービスの明示的な起動（永続する）
+        startService(serviceIntent);
+        // サービスにバインドする
+        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        refreshSensorData();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.v("Activity", "Activity onPause");
+        if (!sensorService.isSensing()) {
+            stopService(serviceIntent);
+            Log.v("Activity", "Stop Service");
+        }
+        unbindService(serviceConnection);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v("Activity", "Activity onDestroy");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // TODO Auto-generated method stub
+        super.onCreateOptionsMenu(menu);
+        menu.add(Menu.NONE, Menu.FIRST, Menu.NONE, "ALL LOG");
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // TODO Auto-generated method stub
+        super.onOptionsItemSelected(item);
+        
+        if(item.getItemId() == Menu.FIRST){
+            Intent intent = new Intent(getApplicationContext(), LogActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+        }
+        
+        return true;
     }
 
     private void settingLayout() {
@@ -134,30 +191,6 @@ public class MainActivity extends Activity {
         simpleView.refreshDrawableState();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.v("Activity", "Activity onResume");
-
-        // サービスの明示的な起動（永続する）
-        startService(serviceIntent);
-        // サービスにバインドする
-        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-        refreshSensorData();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.v("Activity", "Activity onPause");
-        if (!sensorService.isSensing()) {
-            stopService(serviceIntent);
-            Log.v("Activity", "Stop Service");
-        }
-        unbindService(serviceConnection);
-    }
-
     private ServiceConnection serviceConnection = new ServiceConnection() {
 
                                                     @Override
@@ -178,11 +211,5 @@ public class MainActivity extends Activity {
                                                         sensorService = null;
                                                     }
                                                 };
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.v("Activity", "Activity onDestroy");
-    }
 
 }

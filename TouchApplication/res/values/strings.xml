@@ -3,5 +3,6 @@
 
     <string name="app_name">TouchApplication</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_log">LogActivity</string>
 
 </resources>
