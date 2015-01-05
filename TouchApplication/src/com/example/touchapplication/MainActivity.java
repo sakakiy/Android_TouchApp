@@ -101,13 +101,14 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // TODO Auto-generated method stub
         super.onOptionsItemSelected(item);
-        
-        if(item.getItemId() == Menu.FIRST){
-            Intent intent = new Intent(getApplicationContext(), LogActivity.class);
+
+        if (item.getItemId() == Menu.FIRST) {
+            Intent intent = new Intent(getApplicationContext(),
+                    LogActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }
-        
+
         return true;
     }
 

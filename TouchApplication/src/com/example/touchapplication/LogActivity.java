@@ -39,7 +39,7 @@ public class LogActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        // SharedPreferences から値を読み出し TextView  で表示
+        // SharedPreferences から値を読み出し TextView で表示
         String logStr = "";
         int index = sharedPref.getInt(SensorService.SENSOR_INDEX, 0);
         for (int i = 0; i < SensorService.DATA_NUM; i++) {
@@ -52,9 +52,9 @@ public class LogActivity extends Activity {
             logStr += "     ";
             logStr += String.valueOf(sharedPref.getFloat(
                     SensorService.SENSOR_VALUE + Integer.toString(i), 0));
-            
-            // インデックスが指す位置を表す 
-            if(i == index){
+
+            // インデックスが指す位置を表す
+            if (i == index) {
                 logStr += "  <--------- index ---------\n";
             } else {
                 logStr += "\n";
